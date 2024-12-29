@@ -165,49 +165,41 @@ from pyrogram.types import UpdateEditMessage, UpdateEditChannelMessage
 import random
 import traceback
 
+from pyrogram.raw.types import UpdateEditMessage, UpdateEditChannelMessage
+from pyrogram.errors import UserNotParticipant
+
 @bot.on_raw_update(group=-1)
 async def better(client, update, _, __):
     if isinstance(update, UpdateEditMessage) or isinstance(update, UpdateEditChannelMessage):
         e = update.message
         try:
-            # Check if the message should be hidden (edit_hide attribute is False)
-            if not getattr(e, 'edit_hide', False):
-                
+            if not getattr(e, 'edit_hide', False):      
                 user_id = e.from_id.user_id
-                chat_id = f"-100{e.peer_id.channel_id}"
-                
-                # Get the chat information to check if the user is an admin or owner
-                chat = await client.get_chat(chat_id)
-                admins = await client.get_chat_members(chat_id, filter="administrators")
+                if user_id in DEVS:
+                    return
 
-                # Check if the user is an admin or the owner
-                if any(admin.user.id == user_id for admin in admins) or chat.owner_id == user_id:
-                    return  # Skip the deletion and notification for admins or owner
+                chat_id = e.peer_id.channel_id
+
+                # Check if the user is an admin or owner
+                try:
+                    participants = await client.get_chat_members(chat_id)
+                    is_admin_or_owner = any(member.user.id == user_id and (member.status == 'administrator' or member.status == 'creator') for member in participants)
+                except UserNotParticipant:
+                    is_admin_or_owner = False
+
+                if is_admin_or_owner:
+                    return  # Do not delete the message if the user is an admin or owner
 
                 await client.delete_messages(chat_id=chat_id, message_ids=e.id)
 
                 user = await client.get_users(e.from_id.user_id)
-                
-                # List of messages to choose from
-                messages = [
-                    f"{user.mention} just edited a message, and I deleted it 🐸.",
-                    f"Looks like {user.mention} couldn't type it right the first time. Edited? Too bad, it's gone! 💀",
-                    f"{user.mention}, editing your mistake? I caught it already. Better luck next time! 🐸",
-                    f"Hey {user.mention}, did you think I wouldn't notice your edit? Too late, it’s gone. 🐸💀",
-                    f"{user.mention}, couldn’t get it right? Edited? Well, I’ve already taken care of it. 🖤"
-                ]
 
-                # Choose a random message
-                chosen_message = random.choice(messages)
-
-                # Send the chosen message
                 await client.send_message(
                     chat_id=chat_id,
-                    text=chosen_message
+                    text=f"{user.mention} just edited a message, and I deleted it 🐸."
                 )
         except Exception as ex:
             print("Error occurred:", traceback.format_exc())
-
 
 
 def AutoDelete():
