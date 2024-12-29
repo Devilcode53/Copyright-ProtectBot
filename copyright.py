@@ -161,7 +161,6 @@ async def watcher(_, message: Message):
 import random
 
 from pyrogram import Client
-from pyrogram.types import UpdateEditMessage, UpdateEditChannelMessage
 import random
 import traceback
 
