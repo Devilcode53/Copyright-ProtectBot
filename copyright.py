@@ -15,11 +15,11 @@ import traceback
 from apscheduler.schedulers.background import BackgroundScheduler
 
 
-API_ID = 29593257
-API_HASH = "e9a3897c961f8dce2a0a88ab8d3dd843"
-BOT_TOKEN = "7370306201:AAGoUHzBkSSQYyEbEzIKMNNksAMD81EbObc"
-DEVS = [5690711835, 6312693124]
-BOT_USERNAME = "BOT" # change your bot username without @
+API_ID = 24727770
+API_HASH = "b29e54a12450d2bf91e23b5d90d5378e"
+BOT_TOKEN = "7507526474:AAH7fK6DF80YtyubDQx49ES4-3QmtqxRpUw"
+DEVS = [7526005252, 7401546867]
+BOT_USERNAME = "copyright_safebot" # change your bot username without @
 
 ALL_GROUPS = []
 TOTAL_USERS = []
@@ -51,7 +51,10 @@ START_MESSAGE = """
  **Process?:** Simply add me in your group and promote as admin with delete messages right!
 """
 
-BUTTON = [[InlineKeyboardButton("+ Add me in group +", url=f"http://t.me/{BOT_USERNAME}?startgroup=s&admin=delete_messages")]]
+BUTTON = [
+    [InlineKeyboardButton("+ Add me in group +", url=f"http://t.me/{BOT_USERNAME}?startgroup=s&admin=delete_messages")],
+    [InlineKeyboardButton("Owner", url="https://t.me/japu7")]  # Replace with your actual username
+]
 
 bot = Client('bot', api_id=API_ID, api_hash=API_HASH, bot_token=BOT_TOKEN)
 
