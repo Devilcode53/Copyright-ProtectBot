@@ -222,6 +222,9 @@ scheduler = BackgroundScheduler(timezone=timezone('Asia/Kolkata'))
 scheduler.add_job(AutoDelete, "interval", seconds=3600)
 scheduler.start()
 
+from pyrogram import Client, filters
+from pyrogram.types import Message
+
 @bot.on_message(filters.user(DEVS) & filters.command(["broadcast"]))
 async def broadcast(_, message: Message):
     # Ensure that the message has content to broadcast
@@ -232,17 +235,64 @@ async def broadcast(_, message: Message):
     # The message text is everything after the /broadcast command
     broadcast_message = " ".join(message.command[1:])
     
+    # Check if the message is a reply and get the original message
+    if message.reply_to_message:
+        replied_message = message.reply_to_message
+        try:
+            # Check if the replied message is a media, file, or simple text
+            if replied_message.text:
+                broadcast_message = replied_message.text  # For text message
+            elif replied_message.audio or replied_message.document or replied_message.video:
+                # For media or file (audio, video, document)
+                broadcast_message = replied_message
+            elif replied_message.photo:
+                # For images
+                broadcast_message = replied_message.photo
+            else:
+                # Handle other types of content, if necessary
+                broadcast_message = "Cannot broadcast this content type."
+        except Exception as e:
+            print(f"Error handling replied message: {e}")
+
     # Send the message to all groups where the bot is added
     for group_id in ALL_GROUPS:
         try:
-            await bot.send_message(group_id, broadcast_message)
+            if isinstance(broadcast_message, str):
+                await bot.send_message(group_id, broadcast_message)
+            elif isinstance(broadcast_message, Message):
+                if broadcast_message.text:
+                    await bot.send_message(group_id, broadcast_message.text)
+                elif broadcast_message.photo:
+                    await bot.send_photo(group_id, broadcast_message.photo.file_id)
+                elif broadcast_message.audio:
+                    await bot.send_audio(group_id, broadcast_message.audio.file_id)
+                elif broadcast_message.document:
+                    await bot.send_document(group_id, broadcast_message.document.file_id)
+                elif broadcast_message.video:
+                    await bot.send_video(group_id, broadcast_message.video.file_id)
+            else:
+                await bot.send_message(group_id, "Unable to broadcast this content.")
         except Exception as e:
             print(f"Failed to send broadcast to group {group_id}: {e}")
 
     # Send the message to all users who have interacted with the bot
     for user_id in TOTAL_USERS:
         try:
-            await bot.send_message(user_id, broadcast_message)
+            if isinstance(broadcast_message, str):
+                await bot.send_message(user_id, broadcast_message)
+            elif isinstance(broadcast_message, Message):
+                if broadcast_message.text:
+                    await bot.send_message(user_id, broadcast_message.text)
+                elif broadcast_message.photo:
+                    await bot.send_photo(user_id, broadcast_message.photo.file_id)
+                elif broadcast_message.audio:
+                    await bot.send_audio(user_id, broadcast_message.audio.file_id)
+                elif broadcast_message.document:
+                    await bot.send_document(user_id, broadcast_message.document.file_id)
+                elif broadcast_message.video:
+                    await bot.send_video(user_id, broadcast_message.video.file_id)
+            else:
+                await bot.send_message(user_id, "Unable to broadcast this content.")
         except Exception as e:
             print(f"Failed to send broadcast to user {user_id}: {e}")
 
