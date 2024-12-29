@@ -158,6 +158,8 @@ async def watcher(_, message: Message):
                 GROUP_MEDIAS[chat.id] = [message.id]
                 print(f"Chat: {chat.title}, message ID: {message.id}")
 
+import random
+
 # Edit Handlers 
 @bot.on_raw_update(group=-1)
 async def better(client, update, _, __):
@@ -171,13 +173,29 @@ async def better(client, update, _, __):
 
                 chat_id = f"-100{e.peer_id.channel_id}"
                 await client.delete_messages(chat_id=chat_id, message_ids=e.id)               
+
                 user = await client.get_users(e.from_id.user_id)
+                
+                # List of messages to choose from
+                messages = [
+                    f"{user.mention} just edited a message, and I deleted it 🐸.",
+                    f"Looks like {user.mention} couldn't type it right the first time. Edited? Too bad, it's gone! 💀",
+                    f"{user.mention}, editing your mistake? I caught it already. Better luck next time! 🐸",
+                    f"Hey {user.mention}, did you think I wouldn't notice your edit? Too late, it’s gone. 🐸💀",
+                    f"{user.mention}, couldn’t get it right? Edited? Well, I’ve already taken care of it. 🖤"
+                ]
+
+                # Choose a random message
+                chosen_message = random.choice(messages)
+                
+                # Send the chosen message
                 await client.send_message(
                     chat_id=chat_id,
-                    text=f"{user.mention} just edited a message, and I deleted it 🐸."
+                    text=chosen_message
                 )
         except Exception as ex:
             print("Error occurred:", traceback.format_exc())
+
 
 def AutoDelete():
     if len(MEDIA_GROUPS) == 0:
