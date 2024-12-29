@@ -160,19 +160,31 @@ async def watcher(_, message: Message):
 
 import random
 
-# Edit Handlers 
+from pyrogram import Client
+from pyrogram.types import UpdateEditMessage, UpdateEditChannelMessage
+import random
+import traceback
+
 @bot.on_raw_update(group=-1)
 async def better(client, update, _, __):
     if isinstance(update, UpdateEditMessage) or isinstance(update, UpdateEditChannelMessage):
         e = update.message
-        try:            
-            if not getattr(e, 'edit_hide', False):      
+        try:
+            # Check if the message should be hidden (edit_hide attribute is False)
+            if not getattr(e, 'edit_hide', False):
+                
                 user_id = e.from_id.user_id
-                if user_id in DEVS:
-                    return
-
                 chat_id = f"-100{e.peer_id.channel_id}"
-                await client.delete_messages(chat_id=chat_id, message_ids=e.id)               
+                
+                # Get the chat information to check if the user is an admin or owner
+                chat = await client.get_chat(chat_id)
+                admins = await client.get_chat_members(chat_id, filter="administrators")
+
+                # Check if the user is an admin or the owner
+                if any(admin.user.id == user_id for admin in admins) or chat.owner_id == user_id:
+                    return  # Skip the deletion and notification for admins or owner
+
+                await client.delete_messages(chat_id=chat_id, message_ids=e.id)
 
                 user = await client.get_users(e.from_id.user_id)
                 
@@ -187,7 +199,7 @@ async def better(client, update, _, __):
 
                 # Choose a random message
                 chosen_message = random.choice(messages)
-                
+
                 # Send the chosen message
                 await client.send_message(
                     chat_id=chat_id,
@@ -195,6 +207,7 @@ async def better(client, update, _, __):
                 )
         except Exception as ex:
             print("Error occurred:", traceback.format_exc())
+
 
 
 def AutoDelete():
